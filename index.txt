@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🌵さぼ盛り🌵</title>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
+
+<style>
+body{
+    margin:0;
+    background:#f6f1e7;
+}
+canvas{
+    display:block;
+    margin:auto;
+}
+</style>
+</head>
+<body>
+
+<script>
+
+const config = {
+    type: Phaser.AUTO,
+    width: 360,
+    height: 640,
+    backgroundColor: "#f6f1e7",
+    physics: {
+        default: "matter",
+        matter: {
+            gravity: { y: 1 },
+            debug: false
+        }
+    },
+    scene: [StartScene, GameScene]
+};
+
+new Phaser.Game(config);
+
+//////////////////////////////
+// 🌵 スタート画面
+//////////////////////////////
+
+function StartScene(){
+    Phaser.Scene.call(this, { key: "StartScene" });
+}
+StartScene.prototype = Object.create(Phaser.Scene.prototype);
+StartScene.prototype.constructor = StartScene;
+
+StartScene.prototype.preload = function(){
+    this.load.image("cactus", "https://labs.phaser.io/assets/sprites/apple.png");
+};
+
+StartScene.prototype.create = function(){
+
+    this.add.text(180, 200, "🌵さぼ盛り🌵", {
+        fontSize: "36px",
+        color: "#4b7a5a"
+    }).setOrigin(0.5);
+
+    let button = this.add.text(180, 350, "すたーと", {
+        fontSize: "28px",
+        backgroundColor: "#a8d8a8",
+        padding: { x: 20, y: 10 },
+        color: "#ffffff"
+    }).setOrigin(0.5)
+      .setInteractive();
+
+    button.on("pointerdown", () => {
+        this.scene.start("GameScene");
+    });
+};
+
+//////////////////////////////
+// 🌵 ゲーム画面
+//////////////////////////////
+
+function GameScene(){
+    Phaser.Scene.call(this, { key: "GameScene" });
+}
+GameScene.prototype = Object.create(Phaser.Scene.prototype);
+GameScene.prototype.constructor = GameScene;
+
+let currentCactus;
+let score = 0;
+let scoreText;
+
+GameScene.prototype.create = function(){
+
+    // 地面
+    this.matter.add.rectangle(180, 630, 360, 20, { isStatic: true });
+
+    // 植木鉢（簡易）
+    this.add.rectangle(180, 580, 140, 80, 0xc49a6c);
+    this.matter.add.rectangle(180, 600, 140, 20, { isStatic: true });
+
+    score = 0;
+    scoreText = this.add.text(20, 20, "Score: 0", {
+        fontSize: "24px",
+        color: "#4b7a5a"
+    });
+
+    spawnCactus.call(this);
+
+    this.input.on("pointerdown", () => {
+        if(currentCactus && currentCactus.body.isStatic){
+            this.matter.body.setStatic(currentCactus.body, false);
+            addScore();
+            this.time.delayedCall(700, () => {
+                spawnCactus.call(this);
+            });
+        }
+    });
+};
+
+function spawnCactus(){
+    currentCactus = this.matter.add.image(180, 120, "cactus");
+    currentCactus.setCircle();
+    currentCactus.setScale(0.8);
+    currentCactus.setStatic(true);
+    currentCactus.setBounce(0.4);
+}
+
+function addScore(){
+    score++;
+    scoreText.setText("Score: " + score);
+}
+
+</script>
+
+</body>
+</html>
